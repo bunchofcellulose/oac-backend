@@ -148,7 +148,7 @@ const saveRegistration = async (data) => {
 };
 
 const sendConfirmationEmail = async (registrationData) => {
-  const transporter = nodemailer.createTransporter({
+  const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
@@ -252,6 +252,63 @@ app.get('/', (req, res) => {
       stats: 'GET /api/stats'
     }
   });
+});
+
+// Add a route for /register to match frontend requests
+app.post('/register', registerLimiter, async (req, res) => {
+  // This is just a proxy to the /api/register route for compatibility with frontend
+  try {
+    // Validate input
+    const { error, value } = registrationSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: error.details.map(d => d.message)
+      });
+    }
+
+    const registrationData = value;
+
+    // Check if email is already registered
+    const isRegistered = await isEmailRegistered(registrationData.studentEmail);
+    if (isRegistered) {
+      return res.status(409).json({
+        error: 'Email already registered',
+        message: 'This email address is already registered for the competition.'
+      });
+    }
+
+    // Save registration
+    const savedRegistration = await saveRegistration(registrationData);
+    
+    // Log registration
+    logRegistration(savedRegistration);
+
+    // Send confirmation email
+    try {
+      await sendConfirmationEmail(savedRegistration);
+      res.status(200).json({
+        success: true,
+        message: 'Registration successful! Check your email for confirmation.',
+        registrationId: savedRegistration.id
+      });
+    } catch (emailError) {
+      logError(emailError, 'Email sending failed');
+      res.status(200).json({
+        success: true,
+        message: 'Registration successful! However, there was an issue sending the confirmation email. Please contact us if you don\'t receive it.',
+        registrationId: savedRegistration.id,
+        emailWarning: true
+      });
+    }
+
+  } catch (error) {
+    logError(error, 'POST /register');
+    res.status(500).json({
+      error: 'Registration failed',
+      message: 'An internal server error occurred. Please try again later.'
+    });
+  }
 });
 
 app.get('/api/health', (req, res) => {
@@ -377,7 +434,8 @@ app.use((req, res) => {
       'GET /',
       'GET /api/health',
       'GET /api/stats',
-      'POST /api/register'
+      'POST /api/register',
+      'POST /register'
     ]
   });
 });

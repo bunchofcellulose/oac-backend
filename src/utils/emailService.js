@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 const { logError } = require('./database');
 
 const createTransporter = () => {
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
@@ -20,7 +20,7 @@ const createEmailTemplate = (registrationData) => {
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #2c3e50; text-align: center;">🌟 Welcome to the Online Astronomy Competition! 🌟</h2>
         
-        <p>Dear ${registrationData.name},</p>
+        <p>Dear ${registrationData.fullName},</p>
         
         <p>Congratulations! You have successfully registered for the <strong>Online Astronomy Competition (OAC)</strong>.</p>
         
@@ -67,12 +67,12 @@ const createEmailTemplate = (registrationData) => {
         
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #dee2e6;">
         <p style="font-size: 12px; color: #6c757d; text-align: center;">
-          This email was sent to ${registrationData.studentEmail} because you registered for the Online Astronomy Competition.<br>
+          This email was sent to ${registrationData.email} because you registered for the Online Astronomy Competition.<br>
           Registration ID: ${registrationData.id}
         </p>
       </div>
     `,
-    text: `Hi ${registrationData.name},
+    text: `Hi ${registrationData.fullName},
 
 Congratulations! You have successfully registered for the Online Astronomy Competition (OAC).
 
@@ -114,7 +114,7 @@ const sendConfirmationEmail = async (registrationData) => {
 
     const mailOptions = {
       from: `"OAC Team" <${process.env.EMAIL_USER}>`,
-      to: registrationData.studentEmail,
+      to: registrationData.email,
       cc: registrationData.parentEmail,
       subject: '🌟 OAC Registration Confirmed - Welcome to the Online Astronomy Competition!',
       html: emailTemplate.html,
@@ -122,7 +122,7 @@ const sendConfirmationEmail = async (registrationData) => {
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log(`Email sent successfully to ${registrationData.studentEmail}`);
+    console.log(`Email sent successfully to ${registrationData.email}`);
     return result;
   } catch (error) {
     logError(error, 'Email sending failed');
@@ -137,31 +137,31 @@ const sendNotificationEmail = async (registrationData) => {
     const mailOptions = {
       from: `"OAC System" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
-      subject: `New OAC Registration - ${registrationData.name}`,
+      subject: `New OAC Registration - ${registrationData.fullName}`,
       html: `
         <h3>New Registration Received</h3>
-        <p><strong>Name:</strong> ${registrationData.name}</p>
-        <p><strong>Email:</strong> ${registrationData.studentEmail}</p>
+        <p><strong>Name:</strong> ${registrationData.fullName}</p>
+        <p><strong>Email:</strong> ${registrationData.email}</p>
         <p><strong>School:</strong> ${registrationData.school}</p>
         <p><strong>Grade:</strong> ${registrationData.grade}</p>
         <p><strong>Age:</strong> ${registrationData.age}</p>
         <p><strong>Country:</strong> ${registrationData.country}</p>
         <p><strong>Parent Email:</strong> ${registrationData.parentEmail}</p>
-        <p><strong>Experience:</strong> ${registrationData.experience || 'Not provided'}</p>
+        <p><strong>Previous Experience:</strong> ${registrationData.previousExperience || 'Not provided'}</p>
         <p><strong>Motivation:</strong> ${registrationData.motivation || 'Not provided'}</p>
         <p><strong>Registration ID:</strong> ${registrationData.id}</p>
         <p><strong>Timestamp:</strong> ${registrationData.timestamp}</p>
       `,
       text: `New OAC Registration:
       
-Name: ${registrationData.name}
-Email: ${registrationData.studentEmail}
+Name: ${registrationData.fullName}
+Email: ${registrationData.email}
 School: ${registrationData.school}
 Grade: ${registrationData.grade}
 Age: ${registrationData.age}
 Country: ${registrationData.country}
 Parent Email: ${registrationData.parentEmail}
-Experience: ${registrationData.experience || 'Not provided'}
+Previous Experience: ${registrationData.previousExperience || 'Not provided'}
 Motivation: ${registrationData.motivation || 'Not provided'}
 Registration ID: ${registrationData.id}
 Timestamp: ${registrationData.timestamp}`

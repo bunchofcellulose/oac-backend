@@ -22,7 +22,7 @@ const logError = (error, context = '') => {
 
 const logRegistration = (data) => {
   const timestamp = moment().format('YYYY-MM-DD HH:mm:ss');
-  const logEntry = `[${timestamp}] Registration: ${data.name} (${data.studentEmail}) from ${data.country}\n`;
+  const logEntry = `[${timestamp}] Registration: ${data.fullName} (${data.email}) from ${data.country}\n`;
   fs.appendFileSync(path.join(LOGS_DIR, 'registration.log'), logEntry);
 };
 
@@ -37,8 +37,9 @@ const isEmailRegistered = async (email) => {
     fs.createReadStream(REGISTRATIONS_FILE)
       .pipe(csv())
       .on('data', (row) => {
-        if (row.studentEmail || row['Student Email']) {
-          emails.push((row.studentEmail || row['Student Email']).toLowerCase());
+        if (row.email || row['Email'] || row.studentEmail || row['Student Email']) {
+          const emailValue = (row.email || row['Email'] || row.studentEmail || row['Student Email']).toLowerCase();
+          emails.push(emailValue);
         }
       })
       .on('end', () => {
@@ -62,14 +63,14 @@ const saveRegistration = async (data) => {
     header: [
       { id: 'id', title: 'ID' },
       { id: 'timestamp', title: 'Timestamp' },
-      { id: 'name', title: 'Name' },
-      { id: 'studentEmail', title: 'Student Email' },
+      { id: 'fullName', title: 'Name' },
+      { id: 'email', title: 'Email' },
       { id: 'parentEmail', title: 'Parent Email' },
       { id: 'school', title: 'School' },
       { id: 'grade', title: 'Grade' },
       { id: 'age', title: 'Age' },
       { id: 'country', title: 'Country' },
-      { id: 'experience', title: 'Experience' },
+      { id: 'previousExperience', title: 'Previous Experience' },
       { id: 'motivation', title: 'Motivation' }
     ],
     append: fs.existsSync(REGISTRATIONS_FILE)

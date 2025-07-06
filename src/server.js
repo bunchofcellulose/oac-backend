@@ -96,7 +96,7 @@ app.post('/api/register', registerLimiter, async (req, res) => {
     const registrationData = validation.data;
 
     // Check if email is already registered
-    const isRegistered = await isEmailRegistered(registrationData.studentEmail);
+    const isRegistered = await isEmailRegistered(registrationData.email);
     if (isRegistered) {
       return res.status(409).json({
         error: 'Email already registered',

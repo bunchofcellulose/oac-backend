@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 const registrationSchema = Joi.object({
-  name: Joi.string()
+  fullName: Joi.string()
     .trim()
     .min(2)
     .max(100)
@@ -13,15 +13,15 @@ const registrationSchema = Joi.object({
       'any.required': 'Name is required'
     }),
   
-  studentEmail: Joi.string()
+  email: Joi.string()
     .email()
     .trim()
     .lowercase()
     .required()
     .messages({
       'string.email': 'Please provide a valid email address',
-      'string.empty': 'Student email is required',
-      'any.required': 'Student email is required'
+      'string.empty': 'Email is required',
+      'any.required': 'Email is required'
     }),
   
   parentEmail: Joi.string()
@@ -85,7 +85,7 @@ const registrationSchema = Joi.object({
       'any.required': 'Country is required'
     }),
   
-  experience: Joi.string()
+  previousExperience: Joi.string()
     .trim()
     .max(1000)
     .allow('')
